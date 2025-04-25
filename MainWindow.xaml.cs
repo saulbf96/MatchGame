@@ -70,6 +70,9 @@ public partial class MainWindow : Window
             "🦨","🦨",
             "🐷","🐷"
         };
+
+
+
         //ahora usamos el metodo Random  hacemos ina instancia a ese metodo
         Random  random = new Random();
 
