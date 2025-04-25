@@ -9,6 +9,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+//agregamos esto para el temporalizador 
+using System.Windows.Threading;
 
 namespace MatchGame;
 
@@ -17,11 +19,37 @@ namespace MatchGame;
 /// </summary>
 public partial class MainWindow : Window
 {
+    //agregamos el timer 
+    DispatcherTimer timer = new DispatcherTimer();
+    int tenthsOfSecondsElapsed;
+    int matchesFound;
     public MainWindow()
     {
         InitializeComponent();
+        timer.Interval = TimeSpan.FromSeconds(.1);
+        timer.Tick += Timer_Tick;
         SetUpGame();
     }
+
+    private void Timer_Tick(object sender, EventArgs e)
+    {
+        tenthsOfSecondsElapsed++;
+        timeTextBlock.Text = (tenthsOfSecondsElapsed / 10F).ToString("0.0s");
+        if(matchesFound == 8)
+        {
+            timer.Stop();
+            timeTextBlock.Text = timeTextBlock.Text + "- play again?";
+        }
+    }
+
+    //variables
+    //declaramos variables de tipo textbloclok
+    TextBlock lastTexBlockClicked;
+    //agregamos una variable de tipo bool donde se encargara si se le dara click o no 
+    bool findingMatch = false;
+
+
+
     private void SetUpGame()
     {
         /* este metodo toma 8 pares de emojis de animales y los asiganara aleatoriamente, a los controles
@@ -50,16 +78,82 @@ public partial class MainWindow : Window
         //mainGrid es  el padre sus hijos son los que estan adentros 
         foreach (TextBlock  textBlock in mainGrid.Children.OfType<TextBlock>())
         {
-            //declaramos una variable tipo int para el index  y contar los emojis 
-            //genera un index aleatorio basado en los emojis 
-            int index = random.Next(animalEmoji.Count);
-            //declaramos una variable string indexiar los emojis ya que son string la lista 
-            string nextEmoji = animalEmoji[index];
-            textBlock.Text = nextEmoji;
-            animalEmoji.RemoveAt(index);
+            if (textBlock.Name != "timeTextBlock")
+            {
+                textBlock.Visibility = Visibility.Visible;
+                //declaramos una variable tipo int para el index  y contar los emojis 
+                //genera un index aleatorio basado en los emojis 
+                int index = random.Next(animalEmoji.Count);
+                //declaramos una variable string indexiar los emojis ya que son string la lista 
+                string nextEmoji = animalEmoji[index];
+                textBlock.Text = nextEmoji;
+                animalEmoji.RemoveAt(index);
+            }
 
+        }
+        //aqui removemos el juego  y se finaliza el juego 
+        timer.Start();
+        tenthsOfSecondsElapsed = 0;
+        matchesFound = 0;
+
+
+    }
+
+   
+
+    private void TextBlock_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        //metodo del boton al clicked
+        //declaracion de variable para enviar el click 
+        TextBlock textBlock = sender as TextBlock;
+        
+        //si findingmatch es false habilitamos para el clik 
+        if (findingMatch == false )
+        {
+            //esto significa  este elemento desaparece pero esta ocupando ese espacio 
+            textBlock.Visibility = Visibility.Hidden;
+            lastTexBlockClicked = textBlock;
+            findingMatch = true;
+
+        }
+        else if (textBlock.Text == lastTexBlockClicked.Text)
+
+        {
+            matchesFound++;
+            textBlock.Visibility = Visibility.Hidden;
+            findingMatch = false;
+
+
+        }
+        else
+        {
+            lastTexBlockClicked.Visibility = Visibility.Visible;
+            findingMatch = false;
         }
 
 
+
+    }
+
+    private void TimeTexBlock_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (matchesFound == 8)
+        {
+            SetUpGame();
+        }
+       /* else
+        {
+            MessageBox.Show("reiniciar juego si o no ");
+            string res;
+            res = Console.ReadLine();
+            if (res =="si")
+            {
+                SetUpGame();
+            }
+            else
+            {
+                MessageBox.Show("game over ");
+            }
+        }*/
     }
 }
